@@ -46,11 +46,7 @@ mod day1 {
                 .collect::<Vec<i64>>();
             a.push(numbers[0]);
 
-            if b.contains_key(&numbers[1]) {
-                b.insert(numbers[1], b.get(&numbers[1]).unwrap() + 1);
-            } else {
-                b.insert(numbers[1], 1);
-            }
+            b.insert(numbers[1], b.get(&numbers[1]).unwrap_or(&0) + 1);
         }
 
         for v in a.iter() {
