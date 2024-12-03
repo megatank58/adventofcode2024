@@ -3,8 +3,254 @@ use std::fs::read_to_string;
 fn main() {
     let input = &read_to_string("src/input.txt".to_string()).unwrap();
 
-    day2::part1(input);
-    day2::part2(input);
+    day3::part1(input);
+    day3::part2(input);
+}
+
+mod day3 {
+    pub fn part1(input: &str) {
+        let mut lex = input.chars().peekable();
+
+        let mut sum = 0;
+        let mut token = String::new();
+
+        loop {
+            if lex.peek().is_none() {
+                break;
+            }
+
+            let c = lex.next().unwrap();
+
+            if ['m', 'u', 'l'].contains(&c) {
+                token.push(c);
+            } else {
+                match (c, token.as_str()) {
+                    ('(', "mul") => {
+                        let mut a = String::new();
+                        let mut b = String::new();
+
+                        if lex.peek().is_none() {
+                            break;
+                        }
+
+                        let c = *lex.peek().unwrap();
+
+                        if c.is_numeric() {
+                            a.push(c);
+                            lex.next().unwrap();
+                            loop {
+                                if lex.peek().is_none() {
+                                    break;
+                                }
+
+                                let c = *lex.peek().unwrap();
+
+                                if c.is_numeric() {
+                                    a.push(c);
+                                    lex.next().unwrap();
+                                } else {
+                                    break;
+                                }
+                            }
+                        } else {
+                            token.clear();
+                            continue;
+                        }
+
+                        if lex.peek().is_none() {
+                            break;
+                        }
+
+                        let c = *lex.peek().unwrap();
+
+                        if c != ',' {
+                            token.clear();
+                            continue;
+                        }
+
+                        lex.next().unwrap();
+
+                        if lex.peek().is_none() {
+                            break;
+                        }
+
+                        let c = *lex.peek().unwrap();
+
+                        if c.is_numeric() {
+                            b.push(c);
+                            lex.next().unwrap();
+                            loop {
+                                if lex.peek().is_none() {
+                                    break;
+                                }
+
+                                let c = *lex.peek().unwrap();
+
+                                if c.is_numeric() {
+                                    b.push(c);
+                                    lex.next().unwrap();
+                                } else {
+                                    break;
+                                }
+                            }
+                        } else {
+                            token.clear();
+                            continue;
+                        }
+
+                        let c = *lex.peek().unwrap();
+
+                        if c != ')' {
+                            token.clear();
+                            continue;
+                        }
+
+                        sum += a.parse::<u64>().unwrap() * b.parse::<u64>().unwrap();
+                        token.clear();
+                    }
+                    _ => token.clear(),
+                }
+            }
+        }
+
+        dbg!(sum);
+    }
+
+    pub fn part2(input: &str) {
+        let mut lex = input.chars().peekable();
+
+        let mut sum = 0;
+        let mut token = String::new();
+        let mut flag = true;
+
+        loop {
+            if lex.peek().is_none() {
+                break;
+            }
+
+            let c = lex.next().unwrap();
+
+            if ['m', 'u', 'l', 'd', 'o', 'n', 't', '\''].contains(&c) {
+                let is_correct_follow = match (c, token.chars().last().unwrap_or('_')) {
+                    ('m', '_')
+                    | ('u', 'm')
+                    | ('l', 'u')
+                    | ('d', '_')
+                    | ('o', 'd')
+                    | ('n', 'o')
+                    | ('\'', 'n')
+                    | ('t', '\'') => true,
+                    _ => false,
+                };
+
+                if !is_correct_follow {
+                    token.clear();
+                } else {
+                    token.push(c);
+                }
+            } else {
+                match (c, token.as_str()) {
+                    ('(', "mul") => {
+                        let mut a = String::new();
+                        let mut b = String::new();
+
+                        if lex.peek().is_none() {
+                            break;
+                        }
+
+                        let c = *lex.peek().unwrap();
+
+                        if c.is_numeric() {
+                            a.push(c);
+                            lex.next().unwrap();
+                            loop {
+                                if lex.peek().is_none() {
+                                    break;
+                                }
+
+                                let c = *lex.peek().unwrap();
+
+                                if c.is_numeric() {
+                                    a.push(c);
+                                    lex.next().unwrap();
+                                } else {
+                                    break;
+                                }
+                            }
+                        } else {
+                            token.clear();
+                            continue;
+                        }
+
+                        if lex.peek().is_none() {
+                            break;
+                        }
+
+                        let c = *lex.peek().unwrap();
+
+                        if c != ',' {
+                            token.clear();
+                            continue;
+                        }
+
+                        lex.next().unwrap();
+
+                        if lex.peek().is_none() {
+                            break;
+                        }
+
+                        let c = *lex.peek().unwrap();
+
+                        if c.is_numeric() {
+                            b.push(c);
+                            lex.next().unwrap();
+                            loop {
+                                if lex.peek().is_none() {
+                                    break;
+                                }
+
+                                let c = *lex.peek().unwrap();
+
+                                if c.is_numeric() {
+                                    b.push(c);
+                                    lex.next().unwrap();
+                                } else {
+                                    break;
+                                }
+                            }
+                        } else {
+                            token.clear();
+                            continue;
+                        }
+
+                        let c = *lex.peek().unwrap();
+
+                        if c != ')' {
+                            token.clear();
+                            continue;
+                        }
+
+                        if flag {
+                            sum += a.parse::<u64>().unwrap() * b.parse::<u64>().unwrap();
+                        }
+
+                        token.clear();
+                    }
+                    ('(', "do") => {
+                        flag = true;
+                        token.clear();
+                    }
+                    ('(', "don't") => {
+                        flag = false;
+                        token.clear();
+                    }
+                    _ => token.clear(),
+                }
+            }
+        }
+
+        dbg!(sum);
+    }
 }
 
 mod day2 {
