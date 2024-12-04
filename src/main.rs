@@ -3,8 +3,149 @@ use std::fs::read_to_string;
 fn main() {
     let input = &read_to_string("src/input.txt".to_string()).unwrap();
 
-    day3::part1(input);
-    day3::part2(input);
+    day4::part1(input);
+    day4::part2(input);
+}
+
+mod day4 {
+    pub fn part1(input: &str) {
+        let lines = input.lines();
+
+        let mut horizontal = 0;
+        let mut token = String::new();
+
+        for line in lines {
+            for char in line.chars() {
+                token.push(char);
+
+                if token == "XMAS" || token == "SAMX" {
+                    horizontal += 1;
+                }
+
+                if token.len() == 4 {
+                    token.remove(0);
+                }
+            }
+
+            token.clear()
+        }
+
+        let lines = input.lines().collect::<Vec<&str>>();
+        let mut vertical = 0;
+
+        for (i, line) in lines.iter().enumerate() {
+            for (j, char) in line.chars().enumerate() {
+                if char == 'X' && lines.get(i + 3).is_some() {
+                    if lines[i + 1].chars().collect::<Vec<char>>()[j] == 'M'
+                        && lines[i + 2].chars().collect::<Vec<char>>()[j] == 'A'
+                        && lines[i + 3].chars().collect::<Vec<char>>()[j] == 'S'
+                    {
+                        vertical += 1;
+                    }
+                }
+
+                if char == 'S' && lines.get(i + 3).is_some() {
+                    if lines[i + 1].chars().collect::<Vec<char>>()[j] == 'A'
+                        && lines[i + 2].chars().collect::<Vec<char>>()[j] == 'M'
+                        && lines[i + 3].chars().collect::<Vec<char>>()[j] == 'X'
+                    {
+                        vertical += 1;
+                    }
+                }
+            }
+        }
+
+        let lines = input.lines().collect::<Vec<&str>>();
+        let mut diagonal = 0;
+
+        for (i, line) in lines.iter().enumerate() {
+            for (j, char) in line.chars().enumerate() {
+                if char == 'X' {
+                    if lines.get(i + 3).is_some()
+                        && line.chars().collect::<Vec<char>>().get(j + 3).is_some()
+                    {
+                        if lines[i + 1].chars().collect::<Vec<char>>()[j + 1] == 'M'
+                            && lines[i + 2].chars().collect::<Vec<char>>()[j + 2] == 'A'
+                            && lines[i + 3].chars().collect::<Vec<char>>()[j + 3] == 'S'
+                        {
+                            diagonal += 1;
+                        }
+                    }
+
+                    if lines.get(i + 3).is_some() && j >= 3 {
+                        if lines[i + 1].chars().collect::<Vec<char>>()[j - 1] == 'M'
+                            && lines[i + 2].chars().collect::<Vec<char>>()[j - 2] == 'A'
+                            && lines[i + 3].chars().collect::<Vec<char>>()[j - 3] == 'S'
+                        {
+                            diagonal += 1;
+                        }
+                    }
+                }
+
+                if char == 'S' {
+                    if lines.get(i + 3).is_some()
+                        && line.chars().collect::<Vec<char>>().get(j + 3).is_some()
+                    {
+                        if lines[i + 1].chars().collect::<Vec<char>>()[j + 1] == 'A'
+                            && lines[i + 2].chars().collect::<Vec<char>>()[j + 2] == 'M'
+                            && lines[i + 3].chars().collect::<Vec<char>>()[j + 3] == 'X'
+                        {
+                            diagonal += 1;
+                        }
+                    }
+
+                    if lines.get(i + 3).is_some() && j >= 3 {
+                        if lines[i + 1].chars().collect::<Vec<char>>()[j - 1] == 'A'
+                            && lines[i + 2].chars().collect::<Vec<char>>()[j - 2] == 'M'
+                            && lines[i + 3].chars().collect::<Vec<char>>()[j - 3] == 'X'
+                        {
+                            diagonal += 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        dbg!(vertical + horizontal + diagonal);
+    }
+
+    pub fn part2(input: &str) {
+        let lines = input.lines().collect::<Vec<&str>>();
+        let mut sum = 0;
+
+        for (i, line) in lines.iter().enumerate() {
+            for (j, char) in line.chars().enumerate() {
+                if char == 'A'
+                    && i != 0
+                    && i != lines.len() - 1
+                    && j != 0
+                    && j != line.chars().collect::<Vec<char>>().len() - 1
+                {
+                    if (lines[i - 1].chars().collect::<Vec<char>>()[j - 1] == 'M'
+                        && lines[i + 1].chars().collect::<Vec<char>>()[j + 1] == 'S'
+                        && lines[i - 1].chars().collect::<Vec<char>>()[j + 1] == 'M'
+                        && lines[i + 1].chars().collect::<Vec<char>>()[j - 1] == 'S')
+                        || (lines[i - 1].chars().collect::<Vec<char>>()[j - 1] == 'M'
+                            && lines[i + 1].chars().collect::<Vec<char>>()[j + 1] == 'S'
+                            && lines[i - 1].chars().collect::<Vec<char>>()[j + 1] == 'S'
+                            && lines[i + 1].chars().collect::<Vec<char>>()[j - 1] == 'M')
+                        || (lines[i - 1].chars().collect::<Vec<char>>()[j - 1] == 'S'
+                            && lines[i + 1].chars().collect::<Vec<char>>()[j + 1] == 'M'
+                            && lines[i - 1].chars().collect::<Vec<char>>()[j + 1] == 'M'
+                            && lines[i + 1].chars().collect::<Vec<char>>()[j - 1] == 'S')
+                        || (lines[i - 1].chars().collect::<Vec<char>>()[j - 1] == 'S'
+                            && lines[i + 1].chars().collect::<Vec<char>>()[j + 1] == 'M'
+                            && lines[i - 1].chars().collect::<Vec<char>>()[j + 1] == 'S'
+                            && lines[i + 1].chars().collect::<Vec<char>>()[j - 1] == 'M')
+                    {
+                        sum += 1;
+                    }
+                }
+            }
+        }
+
+        dbg!(sum);
+    }
 }
 
 mod day3 {
