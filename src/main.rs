@@ -3,8 +3,160 @@ use std::fs::read_to_string;
 fn main() {
     let input = &read_to_string("src/input.txt".to_string()).unwrap();
 
-    day4::part1(input);
-    day4::part2(input);
+    day5::part1(input);
+    day5::part2(input);
+}
+
+mod day5 {
+    use std::collections::HashMap;
+
+    pub fn part1(input: &str) {
+        let mut lines = input.lines();
+        let mut sum = 0;
+        let mut rules: HashMap<&str, Vec<&str>> = HashMap::new();
+
+        loop {
+            let line = lines.next().unwrap();
+
+            if line == "" {
+                break;
+            }
+
+            let rule = line.split("|").collect::<Vec<&str>>();
+            let key = rule[1];
+            let mut value = if rules.contains_key(key) {
+                rules.get(key).unwrap().to_vec()
+            } else {
+                vec![]
+            };
+
+            value.push(rule[0]);
+
+            rules.insert(key, value.to_vec());
+        }
+
+        for line in lines {
+            let mut elements = vec![];
+
+            let numbers = line.split(",").collect::<Vec<&str>>();
+            let mut flag = true;
+
+            for number in numbers.iter() {
+                elements.push(number);
+
+                let rule = if rules.contains_key(number) {
+                    rules.get(number).unwrap().to_vec()
+                } else {
+                    vec![]
+                };
+
+                for n in rule {
+                    if numbers.contains(&n) && !elements.contains(&&n) {
+                        flag = false;
+                    }
+                }
+            }
+
+            if flag {
+                sum += numbers[(numbers.len() - 1) / 2].parse::<u32>().unwrap();
+            }
+        }
+
+        dbg!(sum);
+    }
+
+    pub fn part2(input: &str) {
+        let mut lines = input.lines();
+        let mut sum = 0;
+        let mut rules: HashMap<&str, Vec<&str>> = HashMap::new();
+
+        loop {
+            let line = lines.next().unwrap();
+
+            if line == "" {
+                break;
+            }
+
+            let rule = line.split("|").collect::<Vec<&str>>();
+            let key = rule[1];
+            let mut value = if rules.contains_key(key) {
+                rules.get(key).unwrap().to_vec()
+            } else {
+                vec![]
+            };
+
+            value.push(rule[0]);
+
+            rules.insert(key, value.to_vec());
+        }
+
+        let mut unsorted_lists = vec![];
+
+        for line in lines {
+            let mut elements = vec![];
+
+            let numbers = line.split(",").collect::<Vec<&str>>();
+            let mut flag = true;
+
+            for number in numbers.iter() {
+                elements.push(number);
+
+                let rule = if rules.contains_key(number) {
+                    rules.get(number).unwrap().to_vec()
+                } else {
+                    vec![]
+                };
+
+                for n in rule {
+                    if numbers.contains(&n) && !elements.contains(&&n) {
+                        flag = false;
+                    }
+                }
+            }
+
+            if !flag {
+                unsorted_lists.push(numbers);
+            }
+        }
+
+        for list in unsorted_lists {
+            let mut elements = vec![];
+            let mut numbers = list;
+
+            let mut is_sorted = false;
+
+            while !is_sorted {
+                let mut flag = true;
+                for (i, number) in numbers.iter().enumerate() {
+                    let rule = if rules.contains_key(number) {
+                        rules.get(number).unwrap().to_vec()
+                    } else {
+                        vec![]
+                    };
+
+                    for n in rule {
+                        if numbers.contains(&n) && !elements.contains(&n) {
+                            elements.push(n);
+                            flag = false;
+                        }
+                    }
+
+                    if !elements.contains(&number) {
+                        elements.push(*number);
+                    }
+                }
+
+                if flag == true {
+                    is_sorted = true;
+                } else {
+                    numbers = elements.clone();
+                    elements.clear();
+                }
+            }
+            sum += numbers[(numbers.len() - 1) / 2].parse::<u32>().unwrap();
+        }
+        dbg!(sum);
+    }
 }
 
 mod day4 {
