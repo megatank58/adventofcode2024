@@ -3,8 +3,194 @@ use std::fs::read_to_string;
 fn main() {
     let input = &read_to_string("src/input.txt".to_string()).unwrap();
 
-    day5::part1(input);
-    day5::part2(input);
+    day6::part1(input);
+    day6::part2(input);
+}
+
+mod day6 {
+    use std::collections::HashSet;
+
+    pub fn part1(input: &str) {
+        let lines = input.lines().collect::<Vec<&str>>();
+        let mut visited_positions = vec![];
+
+        let (mut current_position, mut heading) = get_initial_data(&lines);
+
+        visited_positions.push(current_position);
+
+        loop {
+            let r = next_position(current_position, heading, &lines);
+
+            if r.0.is_none() {
+                break;
+            }
+
+            current_position = r.0.unwrap();
+            visited_positions.push(current_position);
+            heading = r.1;
+        }
+
+        let result = visited_positions
+            .into_iter()
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .collect::<Vec<_>>()
+            .len();
+
+        dbg!(result);
+    }
+
+    pub fn part2(input: &str) {
+        let lines = input.lines().collect::<Vec<&str>>();
+
+        let mut object_positions: Vec<(usize, usize)> = vec![];
+
+        let (mut current_position, mut heading) = get_initial_data(&lines);
+
+        loop {
+            let r = next_position(current_position, heading, &lines);
+
+            if r.0.is_none() {
+                break;
+            }
+
+            current_position = r.0.unwrap();
+            heading = r.1;
+
+            let initial_data = get_initial_data(&lines);
+            let mut temp_heading = initial_data.1;
+            let mut temp_position = initial_data.0;
+            let mut temp_positions = vec![];
+
+            let mut flag = false;
+
+            let mut temp_lines = lines.clone();
+
+            if current_position.1 - 1 + [0,1,2,1][heading] >= temp_lines.len() {
+                continue;
+            }
+
+            let mut temp_line = temp_lines[current_position.1 - 1 + [0,1,2,1][heading]].to_string();
+
+            if current_position.0 - 1 + [1,2,2,0][heading] >= temp_line.len() {
+                continue;
+            }
+
+            let mut temp_chars = temp_line.chars().collect::<Vec<char>>();
+            temp_chars[current_position.0 - 1 + [1,2,1,0][heading]] = '#';
+
+            temp_line = temp_chars.iter().collect::<String>();
+
+            temp_lines[current_position.1 - 1 + [0,1,2,1][heading]] = &temp_line;
+
+            loop {
+                let r = next_position(temp_position, temp_heading, &temp_lines);
+
+                if r.0.is_none() {
+                    break;
+                }
+
+                temp_position = r.0.unwrap();
+                temp_heading = r.1;
+
+                if temp_positions.contains(&(temp_position, temp_heading)) {
+                    flag = true;
+                    break;
+                }
+
+                temp_positions.push((temp_position, temp_heading));
+
+            }
+
+            if flag {
+                object_positions.push((
+                    current_position.0 + 1 - [1, 0, 1, 2][heading],
+                    current_position.1 + 1 - [2, 1, 0, 1][heading],
+                ));
+            }
+        }
+
+        let result = object_positions
+            .into_iter()
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .collect::<Vec<_>>()
+            .len();
+
+        dbg!(result);
+    }
+
+    fn get_initial_data(lines: &Vec<&str>) -> ((usize, usize), usize) {
+        let mut pos = (0, 0);
+        let mut heading = 0;
+
+        for (i, line) in lines.iter().enumerate() {
+            for (j, char) in line.chars().enumerate() {
+                if ['<', '>', '^', 'v'].contains(&char) {
+                    pos = (j, i);
+
+                    heading = ['^', '>', 'v', '<']
+                        .iter()
+                        .position(|f| *f == char)
+                        .unwrap();
+                }
+            }
+        }
+
+        (pos, heading)
+    }
+
+    fn next_position(
+        mut current_position: (usize, usize),
+        mut heading: usize,
+        lines: &Vec<&str>,
+    ) -> (Option<(usize, usize)>, usize) {
+        let result;
+        let max_height = lines.len() - 1;
+        let max_width = lines[0].chars().collect::<Vec<char>>().len() - 1;
+
+        match heading {
+            0 | 2 => {
+                if (current_position.1 == max_height && heading == 2)
+                    || (current_position.1 == 0 && heading == 0)
+                {
+                    result = None;
+                } else if lines[current_position.1 - 1 + heading]
+                    .chars()
+                    .nth(current_position.0)
+                    .unwrap()
+                    == '#'
+                {
+                    heading += 1;
+                    result = Some(current_position);
+                } else {
+                    current_position.1 = current_position.1 - 1 + heading;
+                    result = Some(current_position);
+                }
+            }
+            1 | 3 => {
+                if (current_position.0 == max_width && heading == 1)
+                    || (current_position.0 == 0 && heading == 3)
+                {
+                    result = None;
+                } else if lines[current_position.1]
+                    .chars()
+                    .nth(current_position.0 + 2 - heading)
+                    .unwrap()
+                    == '#'
+                {
+                    heading = if heading == 1 { 2 } else { 0 };
+                    result = Some(current_position);
+                } else {
+                    current_position.0 = current_position.0 + 2 - heading;
+                    result = Some(current_position);
+                }
+            }
+            _ => unreachable!(),
+        }
+
+        (result, heading)
+    }
 }
 
 mod day5 {
@@ -127,7 +313,7 @@ mod day5 {
 
             while !is_sorted {
                 let mut flag = true;
-                for (i, number) in numbers.iter().enumerate() {
+                for number in numbers.iter() {
                     let rule = if rules.contains_key(number) {
                         rules.get(number).unwrap().to_vec()
                     } else {
