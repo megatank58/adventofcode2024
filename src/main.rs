@@ -3,8 +3,87 @@ use std::fs::read_to_string;
 fn main() {
     let input = &read_to_string("src/input.txt".to_string()).unwrap();
 
-    day6::part1(input);
-    day6::part2(input);
+    day7::part1(input);
+}
+
+mod day7 {
+    use std::collections::HashMap;
+
+    use std::vec::IntoIter;
+
+    use itertools::{Itertools, Permutations, Unique};
+
+    pub fn part1(input: &str) {
+        let lines = input.lines();
+        let mut sum = 0;
+
+        let mut permutation_cache: HashMap<usize, Unique<Permutations<IntoIter<i32>>>> =
+            HashMap::new();
+
+        for line in lines {
+            let mut line = line.split(":");
+            let result = line.next().unwrap().parse::<i64>().unwrap();
+
+            let values = line
+                .next()
+                .unwrap()
+                .trim()
+                .split(" ")
+                .map(|f| f.parse::<i64>().unwrap())
+                .collect::<Vec<i64>>();
+
+            let mut selections = vec![];
+
+            for i in 0..values.len() - 1 {
+                let mut selection = vec![];
+                for _ in 0..i {
+                    selection.push(0);
+                }
+                for _ in i..values.len() - 1 {
+                    selection.push(1);
+                }
+                selections.push(selection);
+            }
+
+            let selections_length = selections.len();
+
+            'main: for selection in selections {
+                let selection_length = selection.len();
+
+                let permutation = if permutation_cache.contains_key(&selections_length) {
+                    permutation_cache.get(&selections_length).unwrap().clone()
+                } else {
+                    selection
+                        .into_iter()
+                        .permutations(selection_length)
+                        .unique()
+                };
+
+                permutation_cache.insert(selections_length, permutation.clone());
+
+                for perm in permutation {
+                    let mut r = values[0];
+                    let mut c = 1;
+
+                    for i in perm {
+                        if i == 0 {
+                            r += values[c]
+                        } else {
+                            r *= values[c]
+                        }
+                        c += 1;
+                    }
+
+                    if r == result {
+                        sum += r;
+                        break 'main;
+                    }
+                }
+            }
+        }
+
+        dbg!(sum);
+    }
 }
 
 mod day6 {
@@ -66,22 +145,23 @@ mod day6 {
 
             let mut temp_lines = lines.clone();
 
-            if current_position.1 - 1 + [0,1,2,1][heading] >= temp_lines.len() {
+            if current_position.1 - 1 + [0, 1, 2, 1][heading] >= temp_lines.len() {
                 continue;
             }
 
-            let mut temp_line = temp_lines[current_position.1 - 1 + [0,1,2,1][heading]].to_string();
+            let mut temp_line =
+                temp_lines[current_position.1 - 1 + [0, 1, 2, 1][heading]].to_string();
 
-            if current_position.0 - 1 + [1,2,2,0][heading] >= temp_line.len() {
+            if current_position.0 - 1 + [1, 2, 2, 0][heading] >= temp_line.len() {
                 continue;
             }
 
             let mut temp_chars = temp_line.chars().collect::<Vec<char>>();
-            temp_chars[current_position.0 - 1 + [1,2,1,0][heading]] = '#';
+            temp_chars[current_position.0 - 1 + [1, 2, 1, 0][heading]] = '#';
 
             temp_line = temp_chars.iter().collect::<String>();
 
-            temp_lines[current_position.1 - 1 + [0,1,2,1][heading]] = &temp_line;
+            temp_lines[current_position.1 - 1 + [0, 1, 2, 1][heading]] = &temp_line;
 
             loop {
                 let r = next_position(temp_position, temp_heading, &temp_lines);
@@ -99,7 +179,6 @@ mod day6 {
                 }
 
                 temp_positions.push((temp_position, temp_heading));
-
             }
 
             if flag {
